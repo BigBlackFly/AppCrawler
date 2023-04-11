@@ -8,6 +8,7 @@ import io.appium.java_client.remote.MobileCapabilityType
 import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.DesiredCapabilities
+import org.openqa.selenium.remote.RemoteWebElement
 import java.net.URL
 import java.util.*
 
@@ -24,6 +25,8 @@ class AppCrawler {
     data class Node(
         // 是否是虚节点
         var isVirtual: Boolean = true,
+        // 是否爬取完成。对于虚节点，true代表其名下的子节点全部为true。对于实节点，true即表示其被爬取完成。
+        var isCrawled: Boolean = false,
         // 节点的本体物理元素
         var self: WebElement? = null,
         // 如果为null说明是叶子节点，点击不会调转，或是空页面的虚根节点
@@ -65,12 +68,15 @@ class AppCrawler {
         if (node.isVirtual) {
             // traversal all the children nodes and back to parent page
             node.nodes?.forEach {
-                craw(it)
+                if (!it.isCrawled) craw(it)
             }
+            // after all the children nodes of virtual node are crawled, set virtual node isCrawled = true
+            node.isCrawled = true
             performBack()
         } else {
+            if (node.isCrawled) return
             performClick(node)
-            if (getCurrentPage() != page) { // navigation!
+            if (getCurrentPage() != page) { // navigation! clicked node is another parent node.
                 if (isInOldPage(page)) {
                     // TODO: make a judge: if nav to previous page, need to play again the nav trace, and continue to traverse that page.
                 } else {
@@ -80,8 +86,9 @@ class AppCrawler {
                     // craw the new page (recursively)
                     craw(virtualNode)
                 }
-            } else { // no navigation
+            } else { // no navigation. clicked node is leaf node.
                 node.nodes = null
+                node.isCrawled = true
             }
         }
     }
@@ -120,8 +127,9 @@ class AppCrawler {
     }
 
     private fun performClick(node: Node) {
-        node.self!!.click() // TODO: save log, screenshot
+        node.self?.click() // TODO: save log, screenshot
         // if swipe take effects, then no need to click. otherwise we will try to click. Because there's usually one way to interact with an element.
+        println("clicked element id ${(node.self as RemoteWebElement).id}")
     }
 
     private fun performBack() {

@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo1
+package com.example.appium1demo.demo
 
 //data class ElementStatusModule(
 //    val element: AppCrawler3.ElementModule,
@@ -6,8 +6,8 @@ package com.example.appium1demo.demo1
 //)
 
 data class PageClickStatusModule(
-    val page: AppCrawler3.PageModule,
-    val clickedElements: MutableList<AppCrawler3.ElementModule>
+    val page: AppCrawler.PageModule,
+    val clickedElements: MutableList<AppCrawler.ElementModule>
 )
 
 object ClickRecordManager {
@@ -18,7 +18,7 @@ object ClickRecordManager {
     /**
      * record that this element was clicked.
      */
-    fun recordElementClicked(page: AppCrawler3.PageModule, element: AppCrawler3.ElementModule) {
+    fun recordElementClicked(page: AppCrawler.PageModule, element: AppCrawler.ElementModule) {
         val recordedPage = mPagesClickStatusList.find { it.page == page }
         if (recordedPage != null) {
             // update the existing PageClickStatusModule
@@ -34,7 +34,7 @@ object ClickRecordManager {
         }
     }
 
-    fun getIsClicked(page: AppCrawler3.PageModule, element: AppCrawler3.ElementModule): Boolean {
+    fun getIsClicked(page: AppCrawler.PageModule, element: AppCrawler.ElementModule): Boolean {
         return mPagesClickStatusList.find { it.page == page }?.clickedElements?.contains(element) == true
     }
 

@@ -1,4 +1,4 @@
-package com.example.appium1demo
+package com.example.appium1demo.test
 
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.remote.AndroidMobileCapabilityType

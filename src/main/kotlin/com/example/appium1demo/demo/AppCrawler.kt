@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo1
+package com.example.appium1demo.demo
 
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
@@ -12,14 +12,14 @@ import java.net.URL
 import java.util.*
 import java.util.logging.Logger
 
-class AppCrawler3 {
+class AppCrawler {
 
     companion object {
         const val TAG = "AppCrawler"
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val appCrawler = AppCrawler3()
+            val appCrawler = AppCrawler()
             appCrawler.crawApp()
         }
     }
@@ -43,8 +43,7 @@ class AppCrawler3 {
     data class ElementModule(
         val resId: String = "",
         val pkgName: String = "",
-        val className: String = "",
-        val index: String = ""
+        val className: String = ""
     ) {
         fun getWebElement(driver: AndroidDriver): WebElement {
             if (resId.isNotEmpty()) {
@@ -65,6 +64,8 @@ class AppCrawler3 {
     private val mTraceStack = Stack<StepModule>()
 
     private lateinit var mDriver: AndroidDriver
+
+    private val mParser = XmlParser()
 
     private fun initAppium() {
         val appiumServerUrl = URL("http://127.0.0.1:4723/wd/hub")
@@ -97,8 +98,7 @@ class AppCrawler3 {
                 ElementModule(
                     resId = it.getAttribute("resource-id") ?: "",
                     pkgName = it.getAttribute("package") ?: "",
-                    className = it.getAttribute("class") ?: "",
-                    index = it.getAttribute("index") ?: ""
+                    className = it.getAttribute("class") ?: ""
                 )
             )
         }
@@ -110,7 +110,7 @@ class AppCrawler3 {
         val elements = getElements()
 
 
-        // STEP1: traversal all the elements
+        // STEP1: traversal all the elements in page
         elements.forEach {
             if (!ClickRecordManager.getIsClicked(page, it)) {
 
@@ -178,7 +178,7 @@ class AppCrawler3 {
     }
 
     private fun refinePageSource(pageSource: String): String {
-        return pageSource
+        return mParser.refine(mDriver, pageSource)
     }
 
     private fun getWebElements(): List<WebElement> {

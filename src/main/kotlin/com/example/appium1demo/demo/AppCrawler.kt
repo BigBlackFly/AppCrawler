@@ -10,7 +10,6 @@ import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.DesiredCapabilities
 import java.net.URL
 import java.util.*
-import java.util.logging.Logger
 
 class AppCrawler {
 
@@ -23,42 +22,6 @@ class AppCrawler {
             appCrawler.crawApp()
         }
     }
-
-    data class PageModule(
-        // 经过特殊处理的xml
-        val pageSource: String
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (other !is PageModule) {
-                return false
-            }
-            return other.pageSource == this.pageSource
-        }
-
-        override fun hashCode(): Int {
-            return pageSource.hashCode()
-        }
-    }
-
-    data class ElementModule(
-        val resId: String = "",
-        val pkgName: String = "",
-        val className: String = ""
-    ) {
-        fun getWebElement(driver: AndroidDriver): WebElement {
-            if (resId.isNotEmpty()) {
-                return driver.findElements(By.id(resId))[0]
-            }
-            return driver.findElement(By.xpath("")) // TODO: xpath
-        }
-    }
-
-    data class StepModule(
-        val page: PageModule,
-        val element: ElementModule
-    )
-
-    private val mLogger = Logger.getLogger(TAG)
 
     // nav trace
     private val mTraceStack = Stack<StepModule>()
@@ -89,6 +52,53 @@ class AppCrawler {
         craw()
     }
 
+    private fun craw() {
+        val page = getCurrentPage()
+        val elements = getElements()
+        log("page = $page")
+        log("elements = $elements")
+
+        // STEP1: traversal all the elements in page
+        elements.forEach {
+            log("is ever clicked before = ${ClickRecordManager.getIsClicked(page, it)}")
+
+            if (!ClickRecordManager.getIsClicked(page, it)) {
+
+                val webElement = it.getWebElement(mDriver)
+                webElement.click()
+                log("click!")
+                ClickRecordManager.recordElementClicked(page, it)
+
+                log("isNaved = ${getCurrentPage() != page}")
+                if (getCurrentPage() != page) { // nav
+                    // push the nav step into nav stack
+                    mTraceStack.push(StepModule(page, it))
+
+                    log("isLooped = ${isLooped()}")
+                    if (!isLooped()) { // to new page
+                        craw()
+                    } else { // to a previous page
+                        // back trace, to recover from the previous page
+                        log("will back trace...")
+                        performBackTrace()
+                    }
+
+                } else { // no nav
+                    // do nothing
+                }
+            }
+        }
+
+
+        // STEP2: press back key
+        performBack()
+        log("back!")
+    }
+
+    private fun getCurrentPage(): PageModule {
+        return PageModule(pageSource = getPageSource())
+    }
+
     private fun getElements(): List<ElementModule> {
         val webElements = getWebElements()
         val elements = mutableListOf<ElementModule>()
@@ -105,39 +115,23 @@ class AppCrawler {
         return elements
     }
 
-    private fun craw() {
-        val page = getCurrentPage()
-        val elements = getElements()
+    /**
+     * whether the app jumped to a previously visited page
+     */
+    private fun isLooped(): Boolean {
+        val currentPage = getCurrentPage()
+        // whether page is appeared before
+        return mTraceStack.find { it.page == currentPage } != null
+    }
 
+    private fun getPageSource(): String {
+        val raw = mDriver.pageSource
+        return mParser.refine(mDriver, raw)
+    }
 
-        // STEP1: traversal all the elements in page
-        elements.forEach {
-            if (!ClickRecordManager.getIsClicked(page, it)) {
-
-                val webElement = it.getWebElement(mDriver)
-                webElement.click()
-                ClickRecordManager.recordElementClicked(page, it)
-
-                if (getCurrentPage() != page) { // nav
-                    // push the nav step into nav stack
-                    mTraceStack.push(StepModule(page, it))
-
-                    if (!isLooped()) { // to new page
-                        craw()
-                    } else { // to a previous page
-                        // back trace, to recover from the previous page
-                        performBackTrace()
-                    }
-
-                } else { // no nav
-                    // do nothing
-                }
-            }
-        }
-
-
-        // STEP2: press back key
-        performBack()
+    private fun getWebElements(): List<WebElement> {
+        // note: if an element is set with an OnClickListener, it is absolutely clickable.
+        return mDriver.findElements(By.xpath("//*[@clickable=\"true\"]"))
     }
 
     /**
@@ -159,33 +153,6 @@ class AppCrawler {
         }
     }
 
-    /**
-     * whether the app jumped to a previously visited page
-     */
-    private fun isLooped(): Boolean {
-        val currentPage = getCurrentPage()
-        // whether page is appeared before
-        return mTraceStack.find { it.page == currentPage } != null
-    }
-
-    private fun getCurrentPage(): PageModule {
-        return PageModule(pageSource = getPageSource())
-    }
-
-    private fun getPageSource(): String {
-        val raw = mDriver.pageSource
-        return refinePageSource(raw)
-    }
-
-    private fun refinePageSource(pageSource: String): String {
-        return mParser.refine(mDriver, pageSource)
-    }
-
-    private fun getWebElements(): List<WebElement> {
-        // note: if an element is set with an OnClickListener, it is absolutely clickable.
-        return mDriver.findElements(By.xpath("//*[@clickable=\"true\"]"))
-    }
-
     private fun performBack() {
         mDriver.pressKey(KeyEvent(AndroidKey.BACK))
     }
@@ -196,5 +163,10 @@ class AppCrawler {
         for (i in 1 until itemDepth) {
             pop()
         }
+    }
+
+    private fun log(message: String) {
+        println()
+        println(message)
     }
 }

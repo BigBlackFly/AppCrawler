@@ -3,6 +3,7 @@ package com.example.appium1demo.demo
 import com.example.appium1demo.demo.data.Item
 import com.example.appium1demo.demo.data.Page
 import com.example.appium1demo.demo.data.Step
+import com.example.appium1demo.demo.data.StepAction
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
 import io.appium.java_client.android.nativekey.KeyEvent
@@ -78,7 +79,7 @@ class AppCrawler {
             log("isNaved = ${getCurrentPage() != page}")
             if (getCurrentPage() != page) { // nav
                 // push the nav step into nav stack
-                mTraceStack.push(Step(page, item))
+                mTraceStack.push(Step(page, item, StepAction.CLICK))
 
                 log("isLooped = ${isLooped()}")
                 if (!isLooped()) { // now at a new page
@@ -99,6 +100,7 @@ class AppCrawler {
 
         // STEP2: press back key
         back()
+        mTraceStack.push(Step(page, null, StepAction.BACK))
         log("back!")
     }
 
@@ -154,7 +156,7 @@ class AppCrawler {
         val toIndex = mTraceStack.size - 1
         for (index in fromIndex until toIndex) {
             val step = mTraceStack[index]
-            click(step.item)
+            step.action(mDriver)
             mTraceStack.push(step)
         }
     }

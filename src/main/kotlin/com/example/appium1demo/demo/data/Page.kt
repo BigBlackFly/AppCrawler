@@ -1,11 +1,11 @@
-package com.example.appium1demo.demo
+package com.example.appium1demo.demo.data
 
-data class PageModule(
+data class Page(
     // refined appium pageSource xml string
     val pageSource: String
 ) {
     override fun equals(other: Any?): Boolean {
-        if (other !is PageModule) {
+        if (other !is Page) {
             return false
         }
         return other.pageSource == this.pageSource

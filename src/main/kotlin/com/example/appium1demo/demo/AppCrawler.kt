@@ -1,5 +1,8 @@
 package com.example.appium1demo.demo
 
+import com.example.appium1demo.demo.data.Item
+import com.example.appium1demo.demo.data.Page
+import com.example.appium1demo.demo.data.Step
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
 import io.appium.java_client.android.nativekey.KeyEvent
@@ -8,6 +11,7 @@ import io.appium.java_client.remote.MobileCapabilityType
 import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.DesiredCapabilities
+import utils.XmlParser
 import java.net.URL
 import java.util.*
 
@@ -23,8 +27,8 @@ class AppCrawler {
         }
     }
 
-    // nav trace
-    private val mTraceStack = Stack<StepModule>()
+    // navigation trace
+    private val mTraceStack = Stack<Step>()
 
     private lateinit var mDriver: AndroidDriver
 
@@ -53,26 +57,26 @@ class AppCrawler {
     }
 
     private fun craw() {
+        log("craw!")
         val page = getCurrentPage()
-        val elements = getElements()
+        val items = getItems()
         log("page = $page")
-        log("elements = $elements")
+        log("items = $items")
 
-        // STEP1: traversal all the elements in page
-        elements.forEach {
-            log("is ever clicked before = ${ClickRecordManager.getIsClicked(page, it)}")
+        // STEP1: traversal all the items in page
+        items.forEachIndexed { index, item ->
+            log("item $index has been ever clicked = ${ClickRecorder.getIsClicked(page, item)}")
 
-            if (!ClickRecordManager.getIsClicked(page, it)) {
+            if (!ClickRecorder.getIsClicked(page, item)) {
 
-                val webElement = it.getWebElement(mDriver)
-                webElement.click()
+                click(item)
                 log("click!")
-                ClickRecordManager.recordElementClicked(page, it)
+                ClickRecorder.recordClicked(page, item)
 
                 log("isNaved = ${getCurrentPage() != page}")
                 if (getCurrentPage() != page) { // nav
                     // push the nav step into nav stack
-                    mTraceStack.push(StepModule(page, it))
+                    mTraceStack.push(Step(page, item))
 
                     log("isLooped = ${isLooped()}")
                     if (!isLooped()) { // to new page
@@ -91,28 +95,28 @@ class AppCrawler {
 
 
         // STEP2: press back key
-        performBack()
+        back()
         log("back!")
     }
 
-    private fun getCurrentPage(): PageModule {
-        return PageModule(pageSource = getPageSource())
+    private fun getCurrentPage(): Page {
+        return Page(pageSource = getPageSource())
     }
 
-    private fun getElements(): List<ElementModule> {
+    private fun getItems(): List<Item> {
         val webElements = getWebElements()
-        val elements = mutableListOf<ElementModule>()
+        val items = mutableListOf<Item>()
 
         webElements.forEach {
-            elements.add(
-                ElementModule(
+            items.add(
+                Item(
                     resId = it.getAttribute("resource-id") ?: "",
                     pkgName = it.getAttribute("package") ?: "",
                     className = it.getAttribute("class") ?: ""
                 )
             )
         }
-        return elements
+        return items
     }
 
     /**
@@ -137,7 +141,7 @@ class AppCrawler {
     /**
      * back trace, step by step.
      *
-     * when the app navigated to a previously appeared page, call this method to nav back.
+     * when the app navigated to a previously appeared page, call this method to nav back to the latest page.
      */
     private fun performBackTrace() {
         val fromPage = getCurrentPage()
@@ -147,13 +151,16 @@ class AppCrawler {
         val toIndex = mTraceStack.size - 1
         for (index in fromIndex until toIndex) {
             val step = mTraceStack[index]
-            val webElement = step.element.getWebElement(mDriver)
-            webElement.click()
+            click(step.item)
             mTraceStack.push(step)
         }
     }
 
-    private fun performBack() {
+    private fun click(item: Item) {
+        item.getWebElement(mDriver).click()
+    }
+
+    private fun back() {
         mDriver.pressKey(KeyEvent(AndroidKey.BACK))
     }
 

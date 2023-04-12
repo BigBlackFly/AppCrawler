@@ -1,10 +1,13 @@
-package com.example.appium1demo.demo
+package com.example.appium1demo.demo.data
 
 import io.appium.java_client.android.AndroidDriver
 import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 
-data class ElementModule(
+/**
+ * an item represents a appium element.
+ */
+data class Item(
     val resId: String = "",
     val pkgName: String = "",
     val className: String = ""

@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo;
+package utils;
 
 import org.dom4j.Attribute;
 import org.dom4j.Document;

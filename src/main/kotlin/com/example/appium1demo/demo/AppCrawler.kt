@@ -59,7 +59,7 @@ class AppCrawler {
     private fun craw() {
         log("craw!")
         val page = getCurrentPage()
-        val items = getItems()
+        val items = getCurrentItems()
         log("page = $page")
         log("items = $items")
 
@@ -67,30 +67,33 @@ class AppCrawler {
         items.forEachIndexed { index, item ->
             log("item $index has been ever clicked = ${ClickRecorder.getIsClicked(page, item)}")
 
-            if (!ClickRecorder.getIsClicked(page, item)) {
-
-                click(item)
-                log("click!")
-                ClickRecorder.recordClicked(page, item)
-
-                log("isNaved = ${getCurrentPage() != page}")
-                if (getCurrentPage() != page) { // nav
-                    // push the nav step into nav stack
-                    mTraceStack.push(Step(page, item))
-
-                    log("isLooped = ${isLooped()}")
-                    if (!isLooped()) { // to new page
-                        craw()
-                    } else { // to a previous page
-                        // back trace, to recover from the previous page
-                        log("will back trace...")
-                        performBackTrace()
-                    }
-
-                } else { // no nav
-                    // do nothing
-                }
+            if (ClickRecorder.getIsClicked(page, item)) {
+                return@forEachIndexed
             }
+
+            click(item)
+            log("click!")
+            ClickRecorder.recordClicked(page, item)
+
+            log("isNaved = ${getCurrentPage() != page}")
+            if (getCurrentPage() != page) { // nav
+                // push the nav step into nav stack
+                mTraceStack.push(Step(page, item))
+
+                log("isLooped = ${isLooped()}")
+                if (!isLooped()) { // now at a new page
+                    // craw the new page
+                    craw()
+                } else { // now at a previous page
+                    // back trace, to recover from the previous page
+                    log("will back trace...")
+                    performBackTrace()
+                }
+
+            } else { // no nav
+                // do nothing
+            }
+
         }
 
 
@@ -103,7 +106,7 @@ class AppCrawler {
         return Page(pageSource = getPageSource())
     }
 
-    private fun getItems(): List<Item> {
+    private fun getCurrentItems(): List<Item> {
         val webElements = getWebElements()
         val items = mutableListOf<Item>()
 

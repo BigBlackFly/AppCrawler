@@ -42,10 +42,14 @@ class AppCrawler {
             setCapability("appium:" + MobileCapabilityType.TIMEOUTS, "3600")
             setCapability("appium:" + MobileCapabilityType.PLATFORM_NAME, "Android")
             setCapability("appium:" + MobileCapabilityType.PLATFORM_VERSION, "13")
-            setCapability("appium:" + AndroidMobileCapabilityType.APP_PACKAGE, "com.appcrawler.target")
-            setCapability("appium:" + AndroidMobileCapabilityType.APP_ACTIVITY, "com.appcrawler.target.MainActivity")
+            setCapability("appium:" + AndroidMobileCapabilityType.APP_PACKAGE, "com.zui.calculator")
+            setCapability("appium:" + AndroidMobileCapabilityType.APP_ACTIVITY, "com.zui.calculator.Calculator")
         }
         mDriver = AndroidDriver(appiumServerUrl, capabilities)
+    }
+
+    private fun quitAppium() {
+        mDriver.quit()
     }
 
     /**
@@ -55,12 +59,13 @@ class AppCrawler {
         // start Launcher Page
         initAppium()
         crawl()
+        quitAppium()
     }
 
     private fun crawl() {
         log("\n\n****************************************craw!****************************************")
         val page = getCurrentPage()
-        val items = getCurrentItems()
+        val items = getCurrentItems(page.activity)
         log("page = ${page.md5()}")
         log("items = $items")
 
@@ -76,8 +81,10 @@ class AppCrawler {
             log("clicked item[$index]!")
             ClickRecorder.recordClicked(page, item)
 
-            if (getCurrentPage() != page) { // nav
-                log("isNaved = true, current page = ${getCurrentPage().md5()}")
+            val currentPage = getCurrentPage()
+            log("current page = ${currentPage.md5()}")
+            log("isNaved = ${currentPage != page}")
+            if (currentPage != page) { // nav
                 // push the nav step into nav stack
                 mTraceStack.push(Step(page, item, StepAction.CLICK))
 
@@ -93,7 +100,6 @@ class AppCrawler {
 
             } else { // no nav
                 // do nothing
-                log("isNaved = false")
             }
 
         }
@@ -112,7 +118,7 @@ class AppCrawler {
         )
     }
 
-    private fun getCurrentItems(): List<Item> {
+    private fun getCurrentItems(currentActivity: String): List<Item> {
         val webElements = getWebElements()
         val items = mutableListOf<Item>()
 
@@ -124,6 +130,19 @@ class AppCrawler {
                     className = it.getAttribute("class") ?: ""
                 )
             )
+        }
+        // drop those items which should not be clicked.
+        // TODO: read blackList from configuration file
+        when (currentActivity) {
+            ".CameraLauncher" -> {
+                items.remove(
+                    Item(
+                        resId = "android:id/button2",
+                        pkgName = "com.zui.camera",
+                        className = "android.widget.Button"
+                    )
+                )
+            }
         }
         return items
     }

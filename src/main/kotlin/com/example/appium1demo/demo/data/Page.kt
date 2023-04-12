@@ -11,11 +11,19 @@ data class Page(
         if (other !is Page) {
             return false
         }
-        return other.pageSource == this.pageSource
+        if (other.activity != this.activity) {
+            return false
+        }
+        if (other.pageSource != this.pageSource) {
+            return false
+        }
+        return true
     }
 
     override fun hashCode(): Int {
-        return pageSource.hashCode()
+        var result = activity.hashCode()
+        result = 31 * result + pageSource.hashCode()
+        return result
     }
 
     fun md5(): String {

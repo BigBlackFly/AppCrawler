@@ -15,6 +15,7 @@ dependencies {
     implementation("junit:junit:4.13.2")
     implementation("org.dom4j:dom4j:2.1.4")
     implementation("cn.hutool:hutool-all:5.8.16")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 // Configure Gradle IntelliJ Plugin

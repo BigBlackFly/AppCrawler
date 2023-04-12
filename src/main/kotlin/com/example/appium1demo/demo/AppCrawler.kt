@@ -54,45 +54,46 @@ class AppCrawler {
     fun crawApp() {
         // start Launcher Page
         initAppium()
-        craw()
+        crawl()
     }
 
-    private fun craw() {
-        log("craw!")
+    private fun crawl() {
+        log("\n\n****************************************craw!****************************************")
         val page = getCurrentPage()
         val items = getCurrentItems()
-        log("page = $page")
+        log("page = ${page.md5()}")
         log("items = $items")
 
         // STEP1: traversal all the items in page
         items.forEachIndexed { index, item ->
-            log("item $index has been ever clicked = ${ClickRecorder.getIsClicked(page, item)}")
+            log("item[$index] has been ever clicked = ${ClickRecorder.getIsClicked(page, item)}")
 
             if (ClickRecorder.getIsClicked(page, item)) {
                 return@forEachIndexed
             }
 
             click(item)
-            log("click!")
+            log("clicked item[$index]!")
             ClickRecorder.recordClicked(page, item)
 
-            log("isNaved = ${getCurrentPage() != page}")
             if (getCurrentPage() != page) { // nav
+                log("isNaved = true, current page = ${getCurrentPage().md5()}")
                 // push the nav step into nav stack
                 mTraceStack.push(Step(page, item, StepAction.CLICK))
 
                 log("isLooped = ${isLooped()}")
                 if (!isLooped()) { // now at a new page
                     // craw the new page
-                    craw()
+                    crawl()
                 } else { // now at a previous page
                     // back trace, to recover from the previous page
-                    log("will back trace...")
+                    log("will back trace to ${page.md5()}...")
                     performBackTrace()
                 }
 
             } else { // no nav
                 // do nothing
+                log("isNaved = false")
             }
 
         }
@@ -105,7 +106,10 @@ class AppCrawler {
     }
 
     private fun getCurrentPage(): Page {
-        return Page(pageSource = getPageSource())
+        return Page(
+            activity = getActivity(),
+            pageSource = getPageSource()
+        )
     }
 
     private fun getCurrentItems(): List<Item> {
@@ -131,6 +135,10 @@ class AppCrawler {
         val currentPage = getCurrentPage()
         // whether page is appeared before
         return mTraceStack.find { it.page == currentPage } != null
+    }
+
+    private fun getActivity(): String {
+        return mDriver.currentActivity()
     }
 
     private fun getPageSource(): String {

@@ -14,6 +14,7 @@ dependencies {
     implementation("io.appium:java-client:8.3.0")
     implementation("junit:junit:4.13.2")
     implementation("org.dom4j:dom4j:2.1.4")
+    implementation("cn.hutool:hutool-all:5.8.16")
 }
 
 // Configure Gradle IntelliJ Plugin

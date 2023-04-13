@@ -4,6 +4,7 @@ import com.example.appium1demo.demo.data.Item
 import com.example.appium1demo.demo.data.Page
 import com.example.appium1demo.demo.data.Step
 import com.example.appium1demo.demo.data.StepAction
+import com.example.appium1demo.demo.utils.XmlParser
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
 import io.appium.java_client.android.nativekey.KeyEvent
@@ -12,7 +13,6 @@ import io.appium.java_client.remote.MobileCapabilityType
 import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.DesiredCapabilities
-import utils.XmlParser
 import java.net.URL
 import java.util.*
 
@@ -63,6 +63,7 @@ class AppCrawler {
     }
 
     private fun crawl() {
+        Thread.sleep(2000L)
         log("\n\n****************************************craw!****************************************")
         val page = getCurrentPage()
         val items = getCurrentItems(page.activity)

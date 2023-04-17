@@ -30,20 +30,20 @@ class AppCrawler {
 
     // navigation trace
     private val mTraceStack = Stack<Step>()
-
+    private val mFinishedPages = mutableListOf<Page>()
     private lateinit var mDriver: AndroidDriver
 
     private val mParser = XmlParser()
 
     private fun initAppium() {
-        val appiumServerUrl = URL("http://127.0.0.1:4723/wd/hub")
+        val appiumServerUrl = URL("http://127.0.0.1:4723")
         val capabilities = DesiredCapabilities().apply {
             setCapability("appium:" + MobileCapabilityType.AUTOMATION_NAME, "UiAutomator2")
             setCapability("appium:" + MobileCapabilityType.TIMEOUTS, "3600")
             setCapability("appium:" + MobileCapabilityType.PLATFORM_NAME, "Android")
             setCapability("appium:" + MobileCapabilityType.PLATFORM_VERSION, "13")
-            setCapability("appium:" + AndroidMobileCapabilityType.APP_PACKAGE, "com.zui.calculator")
-            setCapability("appium:" + AndroidMobileCapabilityType.APP_ACTIVITY, "com.zui.calculator.Calculator")
+            setCapability("appium:" + AndroidMobileCapabilityType.APP_PACKAGE, "com.appcrawler.target")
+            setCapability("appium:" + AndroidMobileCapabilityType.APP_ACTIVITY, "com.appcrawler.target.MainActivity")
         }
         mDriver = AndroidDriver(appiumServerUrl, capabilities)
     }
@@ -63,10 +63,9 @@ class AppCrawler {
     }
 
     private fun crawl() {
-        Thread.sleep(2000L)
         log("\n\n****************************************craw!****************************************")
         val page = getCurrentPage()
-        val items = getCurrentItems(page.activity)
+        val items = getConfiguredItemsIn(page)
         log("page = ${page.md5()}")
         log("items = $items")
 
@@ -88,9 +87,14 @@ class AppCrawler {
             if (currentPage != page) { // nav
                 // push the nav step into nav stack
                 mTraceStack.push(Step(page, item, StepAction.CLICK))
-
-                log("isLooped = ${isLooped()}")
-                if (!isLooped()) { // now at a new page
+                if (currentPage in mFinishedPages) {
+                    log("current page has been finished")
+                    back()
+                    return@forEachIndexed
+                }
+                val isLooped = isLooped()
+                log("isLooped = $isLooped")
+                if (!isLooped) { // now at a new page
                     // craw the new page
                     crawl()
                 } else { // now at a previous page
@@ -104,6 +108,7 @@ class AppCrawler {
             }
 
         }
+        mFinishedPages.add(page)
 
 
         // STEP2: press back key
@@ -119,10 +124,14 @@ class AppCrawler {
         )
     }
 
-    private fun getCurrentItems(currentActivity: String): List<Item> {
+    /**
+     * @return the items need test in page, ruled by configuration file.
+     */
+    private fun getConfiguredItemsIn(page: Page): List<Item> {
         val webElements = getWebElements()
         val items = mutableListOf<Item>()
 
+        // TODO: select items according to configuration file
         webElements.forEach {
             items.add(
                 Item(
@@ -134,7 +143,7 @@ class AppCrawler {
         }
         // drop those items which should not be clicked.
         // TODO: read blackList from configuration file
-        when (currentActivity) {
+        when (page.activity) {
             ".CameraLauncher" -> {
                 items.remove(
                     Item(

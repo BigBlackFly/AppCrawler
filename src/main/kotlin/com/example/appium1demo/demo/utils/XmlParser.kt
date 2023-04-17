@@ -7,7 +7,7 @@ import utils.XmlTools
 import java.io.ByteArrayInputStream
 import java.io.IOException
 
-class XmlParser {
+object XmlParser {
     private val reader = SAXReader()
     private val attributes = listOf("package", "class", "resource-id")
 

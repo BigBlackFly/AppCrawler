@@ -33,8 +33,6 @@ class AppCrawler {
     private val mFinishedPages = mutableListOf<Page>()
     private lateinit var mDriver: AndroidDriver
 
-    private val mParser = XmlParser()
-
     private fun initAppium() {
         val appiumServerUrl = URL("http://127.0.0.1:4723")
         val capabilities = DesiredCapabilities().apply {
@@ -172,7 +170,7 @@ class AppCrawler {
 
     private fun getPageSource(): String {
         val raw = mDriver.pageSource
-        return mParser.refine(mDriver, raw)
+        return XmlParser.refine(mDriver, raw)
     }
 
     private fun getWebElements(): List<WebElement> {

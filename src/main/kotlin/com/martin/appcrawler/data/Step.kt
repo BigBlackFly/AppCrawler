@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo.data
+package com.martin.appcrawler.data
 
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
@@ -13,9 +13,9 @@ import io.appium.java_client.android.nativekey.KeyEvent
  *
  */
 data class Step(
-    val page: Page,
-    val item: Item?,
-    val action: StepAction
+        val page: Page,
+        val item: Item?,
+        val action: StepAction
 ) {
 
     /**
@@ -45,6 +45,9 @@ data class Step(
     }
 }
 
+/**
+ * I think we need to play back the user's action sometimes. so, the types of action must be limited.
+ */
 sealed interface StepAction {
     object BACK : StepAction
     object CLICK : StepAction

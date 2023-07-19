@@ -1,13 +1,13 @@
-package com.example.appium1demo.demo
+package com.martin.appcrawler.core
 
-import com.example.appium1demo.demo.data.Item
-import com.example.appium1demo.demo.data.Page
+import com.martin.appcrawler.data.Item
+import com.martin.appcrawler.data.Page
 
 object ClickRecorder {
 
     data class PageClickStatusModule(
-        val page: Page,
-        val clickedItems: MutableList<Item>
+            val page: Page,
+            val clickedItems: MutableList<Item>
     )
 
     // record the clicked status of every item. the clicked info will be useful when traversal.

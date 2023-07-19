@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo.utils
+package com.martin.appcrawler.util
 
 import com.google.gson.Gson
 import javax.annotation.Nullable

@@ -1,4 +1,4 @@
-package com.example.appium1demo.demo.data
+package com.martin.appcrawler.data
 
 import cn.hutool.crypto.SecureUtil
 

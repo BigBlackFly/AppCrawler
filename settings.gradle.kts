@@ -1,1 +1,1 @@
-rootProject.name = "appium1demo"
+rootProject.name = "AppCrawler"

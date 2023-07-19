@@ -1,9 +1,8 @@
-package com.example.appium1demo.demo.utils
+package com.martin.appcrawler.util
 
 import io.appium.java_client.android.AndroidDriver
 import org.dom4j.DocumentException
 import org.dom4j.io.SAXReader
-import utils.XmlTools
 import java.io.ByteArrayInputStream
 import java.io.IOException
 

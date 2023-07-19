@@ -1,10 +1,10 @@
-package com.example.appium1demo.demo
+package com.martin.appcrawler.core
 
-import com.example.appium1demo.demo.data.Item
-import com.example.appium1demo.demo.data.Page
-import com.example.appium1demo.demo.data.Step
-import com.example.appium1demo.demo.data.StepAction
-import com.example.appium1demo.demo.utils.XmlParser
+import com.martin.appcrawler.data.Item
+import com.martin.appcrawler.data.Page
+import com.martin.appcrawler.data.Step
+import com.martin.appcrawler.data.StepAction
+import com.martin.appcrawler.util.XmlParser
 import io.appium.java_client.android.AndroidDriver
 import io.appium.java_client.android.nativekey.AndroidKey
 import io.appium.java_client.android.nativekey.KeyEvent
